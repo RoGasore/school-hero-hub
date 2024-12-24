@@ -17,9 +17,8 @@ const StatsCard = ({ title, value, icon, description }: StatsCardProps) => (
     <CardContent>
       <div className="text-2xl font-bold">{value}</div>
       {description && <p className="text-xs text-muted-foreground">{description}</p>}
-    </div>
-  </CardContent>
-</Card>
+    </CardContent>
+  </Card>
 );
 
 export const DashboardStats = () => {
