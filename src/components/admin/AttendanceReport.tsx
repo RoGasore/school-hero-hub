@@ -6,6 +6,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth } from "date-fns";
+import type { Database } from "@/integrations/supabase/types";
+
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type Attendance = Database["public"]["Tables"]["attendance"]["Row"];
+
+interface AttendanceWithStudent extends Attendance {
+  student: Profile;
+}
 
 interface AttendanceStats {
   studentId: string;
@@ -50,12 +58,14 @@ export const AttendanceReport = () => {
     // Process data to calculate statistics
     const studentStats: Record<string, AttendanceStats> = {};
 
-    data.forEach(record => {
+    (data as AttendanceWithStudent[]).forEach(record => {
+      if (!record.student) return;
+      
       const studentId = record.student.id;
       if (!studentStats[studentId]) {
         studentStats[studentId] = {
           studentId,
-          studentName: `${record.student.first_name} ${record.student.last_name}`,
+          studentName: `${record.student.first_name || ''} ${record.student.last_name || ''}`.trim(),
           present: 0,
           absent: 0,
           late: 0,
@@ -64,8 +74,10 @@ export const AttendanceReport = () => {
         };
       }
 
-      studentStats[studentId][record.status]++;
-      studentStats[studentId].total++;
+      if (record.status) {
+        studentStats[studentId][record.status as 'present' | 'absent' | 'late']++;
+        studentStats[studentId].total++;
+      }
     });
 
     // Calculate percentages

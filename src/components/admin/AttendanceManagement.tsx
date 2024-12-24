@@ -7,16 +7,15 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import type { Database } from "@/integrations/supabase/types";
 
-interface Student {
-  id: string;
-  first_name: string;
-  last_name: string;
-}
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type Class = Database["public"]["Tables"]["classes"]["Row"];
 
-interface Class {
+interface Student extends Profile {
   id: string;
-  name: string;
+  first_name: string | null;
+  last_name: string | null;
 }
 
 export const AttendanceManagement = () => {
@@ -67,7 +66,10 @@ export const AttendanceManagement = () => {
       return;
     }
 
-    setStudents(data.map(d => d.student));
+    const students = data
+      .map(d => d.student)
+      .filter((student): student is Student => student !== null);
+    setStudents(students);
   };
 
   const handleClassChange = (value: string) => {
@@ -83,12 +85,13 @@ export const AttendanceManagement = () => {
   };
 
   const saveAttendance = async () => {
+    const user = await supabase.auth.getUser();
     const attendanceRecords = Object.entries(attendance).map(([studentId, status]) => ({
       student_id: studentId,
       class_id: selectedClass,
       date: format(selectedDate, 'yyyy-MM-dd'),
       status,
-      created_by: supabase.auth.getUser()?.data.user?.id
+      created_by: user.data.user?.id
     }));
 
     const { error } = await supabase
