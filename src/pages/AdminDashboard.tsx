@@ -2,6 +2,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { DashboardStats } from "@/components/admin/DashboardStats";
 import { DashboardCharts } from "@/components/admin/DashboardCharts";
 import { DashboardNotifications } from "@/components/admin/DashboardNotifications";
+import { AttendanceManagement } from "@/components/admin/AttendanceManagement";
+import { AttendanceReport } from "@/components/admin/AttendanceReport";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const AdminDashboard = () => {
   return (
@@ -18,9 +21,27 @@ const AdminDashboard = () => {
             </div>
           </div>
           
-          <DashboardStats />
-          <DashboardCharts />
-          <DashboardNotifications />
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+              <TabsTrigger value="attendance">Présences</TabsTrigger>
+              <TabsTrigger value="reports">Rapports</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-4">
+              <DashboardStats />
+              <DashboardCharts />
+              <DashboardNotifications />
+            </TabsContent>
+
+            <TabsContent value="attendance">
+              <AttendanceManagement />
+            </TabsContent>
+
+            <TabsContent value="reports">
+              <AttendanceReport />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>
