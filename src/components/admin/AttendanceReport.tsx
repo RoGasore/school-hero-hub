@@ -38,8 +38,12 @@ export const AttendanceReport = () => {
     const { data, error } = await supabase
       .from('attendance')
       .select(`
-        student:profiles(id, first_name, last_name),
-        status
+        *,
+        student:student_id (
+          id,
+          first_name,
+          last_name
+        )
       `)
       .eq('class_id', selectedClass)
       .gte('date', format(start, 'yyyy-MM-dd'))
