@@ -3,6 +3,7 @@ import { AdminHeader } from "@/components/layout/AdminHeader"
 import { AdminSidebar } from "@/components/layout/AdminSidebar"
 import { DashboardStats } from "@/components/admin/DashboardStats"
 import { DashboardCharts } from "@/components/admin/DashboardCharts"
+import { GradesManagement } from "@/components/admin/GradesManagement"
 import { AttendanceManagement } from "@/components/admin/AttendanceManagement"
 import { AttendanceReport } from "@/components/admin/AttendanceReport"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -28,6 +29,7 @@ const AdminDashboard = () => {
               <Tabs defaultValue="overview" className="space-y-4">
                 <TabsList>
                   <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+                  <TabsTrigger value="grades">Points</TabsTrigger>
                   <TabsTrigger value="attendance">Présences</TabsTrigger>
                   <TabsTrigger value="reports">Rapports</TabsTrigger>
                 </TabsList>
@@ -35,6 +37,10 @@ const AdminDashboard = () => {
                 <TabsContent value="overview" className="space-y-4">
                   <DashboardStats />
                   <DashboardCharts />
+                </TabsContent>
+
+                <TabsContent value="grades">
+                  <GradesManagement />
                 </TabsContent>
 
                 <TabsContent value="attendance">
