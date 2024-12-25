@@ -5,10 +5,19 @@ import { DashboardStats } from "@/components/admin/DashboardStats"
 import { DashboardCharts } from "@/components/admin/DashboardCharts"
 import { GradesManagement } from "@/components/admin/GradesManagement"
 import { AttendanceManagement } from "@/components/admin/AttendanceManagement"
-import { AttendanceReport } from "@/components/admin/AttendanceReport"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { useEffect } from "react"
 
 const AdminDashboard = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = searchParams.get("tab") || "overview"
+  const navigate = useNavigate()
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value })
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -26,12 +35,11 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList>
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
                   <TabsTrigger value="grades">Points</TabsTrigger>
                   <TabsTrigger value="attendance">Présences</TabsTrigger>
-                  <TabsTrigger value="reports">Rapports</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
@@ -45,10 +53,6 @@ const AdminDashboard = () => {
 
                 <TabsContent value="attendance">
                   <AttendanceManagement />
-                </TabsContent>
-
-                <TabsContent value="reports">
-                  <AttendanceReport />
                 </TabsContent>
               </Tabs>
             </div>

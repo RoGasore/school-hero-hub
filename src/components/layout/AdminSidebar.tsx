@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/sidebar"
 import {
   BarChart3,
-  BookOpen,
   GraduationCap,
   Home,
   Library,
@@ -19,23 +18,23 @@ import {
   Users,
   UserCheck,
 } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 
 const menuItems = [
   {
-    title: "Tableau de bord",
+    title: "Vue d'ensemble",
     icon: Home,
-    path: "/admin",
+    path: "/admin?tab=overview",
   },
   {
-    title: "Gestion des points",
+    title: "Points",
     icon: GraduationCap,
-    path: "/admin/grades",
+    path: "/admin?tab=grades",
   },
   {
-    title: "Gestion des présences",
+    title: "Présences",
     icon: UserCheck,
-    path: "/admin/attendance",
+    path: "/admin?tab=attendance",
   },
   {
     title: "Enseignants",
@@ -48,11 +47,6 @@ const menuItems = [
     path: "/admin/library",
   },
   {
-    title: "Rapports",
-    icon: BarChart3,
-    path: "/admin/reports",
-  },
-  {
     title: "Paramètres",
     icon: Settings,
     path: "/admin/settings",
@@ -61,6 +55,8 @@ const menuItems = [
 
 export function AdminSidebar() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const activeTab = searchParams.get("tab") || "overview"
 
   return (
     <Sidebar>
@@ -74,7 +70,8 @@ export function AdminSidebar() {
                   <SidebarMenuButton
                     onClick={() => navigate(item.path)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50",
+                      item.path.includes(activeTab) && "bg-accent text-accent-foreground"
                     )}
                   >
                     <item.icon className="h-4 w-4" />
