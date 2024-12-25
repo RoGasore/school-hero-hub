@@ -12,7 +12,11 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type Attendance = Database["public"]["Tables"]["attendance"]["Row"];
 
 interface AttendanceWithStudent extends Attendance {
-  student: Profile;
+  student: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+  };
 }
 
 interface AttendanceStats {
@@ -35,11 +39,13 @@ export const AttendanceReport = () => {
     const start = startOfMonth(selectedMonth);
     const end = endOfMonth(selectedMonth);
 
+    console.log('Generating report for class:', selectedClass, 'from:', format(start, 'yyyy-MM-dd'), 'to:', format(end, 'yyyy-MM-dd'));
+
     const { data, error } = await supabase
       .from('attendance')
       .select(`
         *,
-        student:student_id (
+        student:profiles!attendance_student_id_fkey (
           id,
           first_name,
           last_name
@@ -58,6 +64,8 @@ export const AttendanceReport = () => {
       });
       return;
     }
+
+    console.log('Report data:', data);
 
     // Process data to calculate statistics
     const studentStats: Record<string, AttendanceStats> = {};
