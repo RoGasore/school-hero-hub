@@ -1,46 +1,60 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from "recharts"
 
-const genderData = [
-  { name: "Garçons", value: 240 },
-  { name: "Filles", value: 210 },
-];
+const studentDistributionData = [
+  { name: "< 50%", value: 85, color: "#EF4444" },
+  { name: "50-70%", value: 245, color: "#F59E0B" },
+  { name: "≥ 70%", value: 120, color: "#10B981" },
+]
 
-const classData = [
-  { name: "6e A", students: 35 },
-  { name: "6e B", students: 32 },
-  { name: "5e A", students: 38 },
-  { name: "5e B", students: 34 },
-  { name: "4e A", students: 36 },
-  { name: "4e B", students: 33 },
-];
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D"];
+const classPerformanceData = [
+  { name: "7ème E.B.", average: 72 },
+  { name: "8ème E.B.", average: 68 },
+  { name: "1ère H.", average: 65 },
+  { name: "2ème H.", average: 70 },
+  { name: "3ème H.", average: 63 },
+  { name: "4ème H.", average: 69 },
+]
 
 export const DashboardCharts = () => {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Répartition par Genre</CardTitle>
+          <CardTitle>Distribution des Moyennes</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={genderData}
+                  data={studentDistributionData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                 >
-                  {genderData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {studentDistributionData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                    />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -53,22 +67,26 @@ export const DashboardCharts = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Élèves par Classe</CardTitle>
+          <CardTitle>Performance par Classe</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={classData}>
+              <BarChart data={classPerformanceData}>
                 <XAxis dataKey="name" />
-                <YAxis />
+                <YAxis domain={[0, 100]} />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="students" fill="#8884d8" />
+                <Bar
+                  dataKey="average"
+                  fill="#3B82F6"
+                  name="Moyenne de classe"
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
