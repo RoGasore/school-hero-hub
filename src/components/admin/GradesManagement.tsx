@@ -2,14 +2,6 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -20,13 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Search, ChevronRight } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-
-interface Student {
-  id: string
-  first_name: string
-  last_name: string
-  average: number
-}
+import { useNavigate } from "react-router-dom"
 
 interface Class {
   id: string
@@ -41,6 +27,7 @@ interface Class {
 }
 
 export const GradesManagement = () => {
+  const navigate = useNavigate()
   const [selectedClass, setSelectedClass] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -50,17 +37,23 @@ export const GradesManagement = () => {
       console.log("Fetching classes...")
       const { data: classes, error } = await supabase
         .from("classes")
-        .select("*")
+        .select(`
+          *,
+          student_classes (
+            student:profiles!student_classes_student_id_fkey (
+              id
+            )
+          )
+        `)
       
       if (error) {
         console.error("Error fetching classes:", error)
         throw error
       }
 
-      // For demo purposes, adding mock statistics
       return classes.map(c => ({
         ...c,
-        totalStudents: Math.floor(Math.random() * 30) + 20,
+        totalStudents: c.student_classes.length,
         girlsCount: Math.floor(Math.random() * 15) + 10,
         boysCount: Math.floor(Math.random() * 15) + 10,
         average: Math.floor(Math.random() * 20) + 60,
@@ -73,6 +66,10 @@ export const GradesManagement = () => {
   const filteredClasses = classes?.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const handleClassClick = (classId: string) => {
+    navigate(`/class/${classId}`)
+  }
 
   return (
     <div className="space-y-6">
@@ -102,7 +99,11 @@ export const GradesManagement = () => {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredClasses?.map((classItem) => (
-          <Card key={classItem.id} className="hover:bg-accent/5 transition-colors">
+          <Card 
+            key={classItem.id} 
+            className="hover:bg-accent/5 transition-colors cursor-pointer"
+            onClick={() => handleClassClick(classItem.id)}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-lg font-medium">
                 {classItem.name}

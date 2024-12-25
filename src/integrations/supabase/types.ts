@@ -78,6 +78,55 @@ export type Database = {
         }
         Relationships: []
       }
+      grades: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          grade: number
+          id: string
+          student_id: string | null
+          teacher_class_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          grade: number
+          id?: string
+          student_id?: string | null
+          teacher_class_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          grade?: number
+          id?: string
+          student_id?: string | null
+          teacher_class_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grades_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grades_teacher_class_id_fkey"
+            columns: ["teacher_class_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
