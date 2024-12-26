@@ -13,6 +13,7 @@ import { Search, ChevronRight } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { useNavigate } from "react-router-dom"
+import { GradeStatusIndicator } from "@/components/grades/GradeStatusIndicator"
 
 interface Class {
   id: string
@@ -42,6 +43,9 @@ export const GradesManagement = () => {
           student_classes (
             student:profiles!student_classes_student_id_fkey (
               id
+            ),
+            grades (
+              grade
             )
           )
         `)
@@ -51,15 +55,20 @@ export const GradesManagement = () => {
         throw error
       }
 
-      return classes.map(c => ({
-        ...c,
-        totalStudents: c.student_classes.length,
-        girlsCount: Math.floor(Math.random() * 15) + 10,
-        boysCount: Math.floor(Math.random() * 15) + 10,
-        average: Math.floor(Math.random() * 20) + 60,
-        girlsAverage: Math.floor(Math.random() * 20) + 60,
-        boysAverage: Math.floor(Math.random() * 20) + 60,
-      }))
+      return classes.map(c => {
+        const totalStudents = c.student_classes.length;
+        const allGrades = c.student_classes.flatMap(sc => sc.grades.map(g => g.grade));
+        const average = allGrades.length > 0 
+          ? allGrades.reduce((a, b) => a + b, 0) / allGrades.length 
+          : 0;
+
+        return {
+          ...c,
+          totalStudents,
+          average,
+          percentage: ((average / 20) * 100).toFixed(1),
+        };
+      });
     },
   })
 
@@ -116,25 +125,17 @@ export const GradesManagement = () => {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Moyenne générale:</span>
-                  <span className="font-medium">{classItem.average}%</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{classItem.average.toFixed(1)}/20</span>
+                    <GradeStatusIndicator 
+                      percentage={parseFloat(classItem.percentage)}
+                      showText={false}
+                    />
+                  </div>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total élèves:</span>
                   <span className="font-medium">{classItem.totalStudents}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-2 text-sm">
-                  <div className="space-y-1">
-                    <div className="text-muted-foreground">Filles</div>
-                    <div className="font-medium">
-                      {classItem.girlsCount} ({classItem.girlsAverage}%)
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-muted-foreground">Garçons</div>
-                    <div className="font-medium">
-                      {classItem.boysCount} ({classItem.boysAverage}%)
-                    </div>
-                  </div>
                 </div>
               </div>
             </CardContent>

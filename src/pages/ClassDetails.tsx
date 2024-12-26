@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+import { GradeStatusIndicator } from "@/components/grades/GradeStatusIndicator";
+import { StudentGradesList } from "@/components/grades/StudentGradesList";
 import {
   Table,
   TableBody,
@@ -16,6 +18,8 @@ import {
 const ClassDetails = () => {
   const { classId } = useParams();
   const navigate = useNavigate();
+
+  console.log("Fetching class details for:", classId);
 
   // Fetch class details
   const { data: classDetails } = useQuery({
@@ -36,6 +40,7 @@ const ClassDetails = () => {
   const { data: studentsWithGrades, isLoading } = useQuery({
     queryKey: ["class-students", classId],
     queryFn: async () => {
+      console.log("Fetching students and grades for class:", classId);
       const { data, error } = await supabase
         .from("student_classes")
         .select(`
@@ -47,7 +52,11 @@ const ClassDetails = () => {
           grades!inner (
             grade,
             teacher_classes (
-              subject
+              subject,
+              teacher:profiles!teacher_classes_teacher_id_fkey (
+                first_name,
+                last_name
+              )
             )
           )
         `)
@@ -60,7 +69,7 @@ const ClassDetails = () => {
         const grades = item.grades.map((g: any) => ({
           subject: g.teacher_classes.subject,
           grade: g.grade,
-          status: g.grade >= 10 ? "success" : "danger",
+          teacher: `${g.teacher_classes.teacher.first_name} ${g.teacher_classes.teacher.last_name}`,
         }));
 
         const average =
@@ -105,44 +114,42 @@ const ClassDetails = () => {
       {isLoading ? (
         <div>Chargement des données...</div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Élève</TableHead>
-              <TableHead>Moyenne</TableHead>
-              <TableHead>Pourcentage</TableHead>
-              <TableHead>Détails</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {studentsWithGrades?.map((student) => (
-              <TableRow
-                key={student.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleStudentClick(student.id)}
-              >
-                <TableCell>{student.name}</TableCell>
-                <TableCell>{student.average}/20</TableCell>
-                <TableCell>{student.percentage}%</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    {student.grades.map((grade: any, index: number) => (
-                      <div
-                        key={index}
-                        className={`w-2 h-2 rounded-full ${
-                          grade.status === "success"
-                            ? "bg-green-500"
-                            : "bg-red-500"
-                        }`}
-                        title={`${grade.subject}: ${grade.grade}/20`}
+        <Card>
+          <CardHeader>
+            <CardTitle>Liste des élèves</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Élève</TableHead>
+                  <TableHead>Moyenne</TableHead>
+                  <TableHead>Pourcentage</TableHead>
+                  <TableHead>Statut</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {studentsWithGrades?.map((student) => (
+                  <TableRow
+                    key={student.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleStudentClick(student.id)}
+                  >
+                    <TableCell>{student.name}</TableCell>
+                    <TableCell>{student.average}/20</TableCell>
+                    <TableCell>{student.percentage}%</TableCell>
+                    <TableCell>
+                      <GradeStatusIndicator 
+                        percentage={parseFloat(student.percentage)} 
+                        className="justify-start"
                       />
-                    ))}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
