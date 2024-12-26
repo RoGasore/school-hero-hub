@@ -44,7 +44,7 @@ export const GradesManagement = () => {
             student:profiles!student_classes_student_id_fkey (
               id
             ),
-            grades (
+            grades:grades!student_classes_student_id_fkey!student_id (
               grade
             )
           )
