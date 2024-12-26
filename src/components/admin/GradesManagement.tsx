@@ -44,8 +44,9 @@ export const GradesManagement = () => {
             student:profiles!student_classes_student_id_fkey (
               id
             ),
-            grades:grades!student_classes_student_id_fkey (
-              grade
+            grades (
+              grade,
+              teacher_class_id
             )
           )
         `)
@@ -55,9 +56,16 @@ export const GradesManagement = () => {
         throw error
       }
 
+      if (!classesData) {
+        console.log("No classes data found")
+        return []
+      }
+
       return classesData.map(c => {
         const totalStudents = c.student_classes.length;
-        const allGrades = c.student_classes.flatMap(sc => sc.grades.map(g => g.grade));
+        const allGrades = c.student_classes.flatMap(sc => 
+          sc.grades ? sc.grades.map(g => g.grade) : []
+        );
         const average = allGrades.length > 0 
           ? allGrades.reduce((a, b) => a + b, 0) / allGrades.length 
           : 0;
