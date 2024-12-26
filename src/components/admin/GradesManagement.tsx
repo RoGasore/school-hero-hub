@@ -36,15 +36,15 @@ export const GradesManagement = () => {
     queryKey: ["classes"],
     queryFn: async () => {
       console.log("Fetching classes...")
-      const { data: classes, error } = await supabase
+      const { data: classesData, error } = await supabase
         .from("classes")
         .select(`
           *,
-          student_classes (
+          student_classes!inner (
             student:profiles!student_classes_student_id_fkey (
               id
             ),
-            grades (
+            grades:grades!student_classes_student_id_fkey (
               grade
             )
           )
@@ -55,7 +55,7 @@ export const GradesManagement = () => {
         throw error
       }
 
-      return classes.map(c => {
+      return classesData.map(c => {
         const totalStudents = c.student_classes.length;
         const allGrades = c.student_classes.flatMap(sc => sc.grades.map(g => g.grade));
         const average = allGrades.length > 0 
