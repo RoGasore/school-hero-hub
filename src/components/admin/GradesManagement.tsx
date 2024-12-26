@@ -44,8 +44,10 @@ export const GradesManagement = () => {
               last_name
             )
           ),
-          grades!inner (
-            grade
+          teacher_classes (
+            grades (
+              grade
+            )
           )
         `)
       
@@ -61,7 +63,9 @@ export const GradesManagement = () => {
 
       return classesData.map(c => {
         const totalStudents = c.student_classes?.length || 0
-        const allGrades = c.grades?.map(g => g.grade) || []
+        const allGrades = c.teacher_classes?.flatMap(tc => 
+          tc.grades?.map(g => g.grade) || []
+        ) || []
         
         const average = allGrades.length > 0 
           ? allGrades.reduce((a, b) => a + b, 0) / allGrades.length 
