@@ -40,13 +40,12 @@ export const GradesManagement = () => {
         .from("classes")
         .select(`
           *,
-          student_classes!inner (
+          student_classes (
             student:profiles!student_classes_student_id_fkey (
               id
             ),
-            grades (
-              grade,
-              teacher_class_id
+            grades!student_classes_student_id_fkey (
+              grade
             )
           )
         `)
