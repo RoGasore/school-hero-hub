@@ -41,10 +41,12 @@ export const GradesManagement = () => {
         .select(`
           *,
           student_classes (
-            student:profiles!student_classes_student_id_fkey (
-              id
+            student:profiles (
+              id,
+              first_name,
+              last_name
             ),
-            grades:grades!student_classes_student_id_fkey!student_id (
+            grades (
               grade
             )
           )
@@ -61,10 +63,11 @@ export const GradesManagement = () => {
       }
 
       return classesData.map(c => {
-        const totalStudents = c.student_classes.length;
-        const allGrades = c.student_classes.flatMap(sc => 
-          sc.grades ? sc.grades.map(g => g.grade) : []
-        );
+        const totalStudents = c.student_classes?.length || 0;
+        const allGrades = c.student_classes?.flatMap(sc => 
+          sc.grades?.map(g => g.grade) || []
+        ) || [];
+        
         const average = allGrades.length > 0 
           ? allGrades.reduce((a, b) => a + b, 0) / allGrades.length 
           : 0;
