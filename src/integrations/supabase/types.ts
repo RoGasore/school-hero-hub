@@ -78,30 +78,57 @@ export type Database = {
         }
         Relationships: []
       }
+      evaluation_types: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       grades: {
         Row: {
           created_at: string | null
           created_by: string | null
+          evaluation_type_id: string | null
           grade: number
           id: string
+          period_id: string | null
           student_id: string | null
           teacher_class_id: string | null
+          weight: number | null
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          evaluation_type_id?: string | null
           grade: number
           id?: string
+          period_id?: string | null
           student_id?: string | null
           teacher_class_id?: string | null
+          weight?: number | null
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
+          evaluation_type_id?: string | null
           grade?: number
           id?: string
+          period_id?: string | null
           student_id?: string | null
           teacher_class_id?: string | null
+          weight?: number | null
         }
         Relationships: [
           {
@@ -109,6 +136,20 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grades_evaluation_type_id_fkey"
+            columns: ["evaluation_type_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grades_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "periods"
             referencedColumns: ["id"]
           },
           {
@@ -174,6 +215,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      periods: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          id: string
+          is_default: boolean | null
+          name: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          id?: string
+          is_default?: boolean | null
+          name: string
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

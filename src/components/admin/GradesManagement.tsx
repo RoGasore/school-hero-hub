@@ -20,11 +20,8 @@ interface Class {
   name: string
   description: string
   totalStudents: number
-  girlsCount: number
-  boysCount: number
   average: number
-  girlsAverage: number
-  boysAverage: number
+  percentage: string
 }
 
 export const GradesManagement = () => {
@@ -40,15 +37,15 @@ export const GradesManagement = () => {
         .from("classes")
         .select(`
           *,
-          student_classes (
-            student:profiles (
+          student_classes!inner (
+            student:profiles!inner (
               id,
               first_name,
               last_name
-            ),
-            grades (
-              grade
             )
+          ),
+          grades!inner (
+            grade
           )
         `)
       
@@ -63,22 +60,20 @@ export const GradesManagement = () => {
       }
 
       return classesData.map(c => {
-        const totalStudents = c.student_classes?.length || 0;
-        const allGrades = c.student_classes?.flatMap(sc => 
-          sc.grades?.map(g => g.grade) || []
-        ) || [];
+        const totalStudents = c.student_classes?.length || 0
+        const allGrades = c.grades?.map(g => g.grade) || []
         
         const average = allGrades.length > 0 
           ? allGrades.reduce((a, b) => a + b, 0) / allGrades.length 
-          : 0;
+          : 0
 
         return {
           ...c,
           totalStudents,
           average,
           percentage: ((average / 20) * 100).toFixed(1),
-        };
-      });
+        }
+      })
     },
   })
 
