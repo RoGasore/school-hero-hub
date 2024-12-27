@@ -16,13 +16,43 @@ const TeacherDashboard = () => {
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        setUserId(session.user.id);
-      } else {
+      
+      if (!session) {
+        navigate('/login');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!profile || profile.role !== 'teacher') {
+        toast({
+          variant: "destructive",
+          title: "Accès refusé",
+          description: "Vous devez être connecté en tant qu'enseignant pour accéder à cette page",
+        });
+        navigate('/login');
+        return;
+      }
+
+      setUserId(session.user.id);
+    };
+
+    checkSession();
+
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
         navigate('/login');
       }
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
-    checkSession();
   }, [navigate]);
 
   const { data: teacherData, isLoading } = useQuery({

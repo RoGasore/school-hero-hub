@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -8,42 +8,85 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export const LoginForm = () => {
   const [userType, setUserType] = useState("student");
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Vérifier si l'utilisateur est déjà connecté
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          redirectBasedOnRole(profile.role);
+        }
+      }
+    };
+    checkSession();
+  }, []);
+
+  const redirectBasedOnRole = (role: string) => {
+    switch (role) {
+      case "admin":
+        navigate("/admin");
+        break;
+      case "teacher":
+        navigate("/teacher");
+        break;
+      case "student":
+        navigate("/student");
+        break;
+      default:
+        navigate("/");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simulation de login - à remplacer par une vraie authentification
-    if (username && password) {
-      toast({
-        title: "Connexion réussie",
-        description: "Bienvenue sur votre tableau de bord",
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
-      
-      switch (userType) {
-        case "admin":
-          navigate("/admin");
-          break;
-        case "teacher":
-          navigate("/teacher");
-          break;
-        case "student":
-          navigate("/student");
-          break;
+
+      if (error) throw error;
+
+      if (data.session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.session.user.id)
+          .single();
+
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue sur votre tableau de bord",
+        });
+
+        if (profile) {
+          redirectBasedOnRole(profile.role);
+        }
       }
-    } else {
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs",
+        title: "Erreur de connexion",
+        description: error.message || "Une erreur est survenue",
       });
     }
   };
@@ -68,10 +111,10 @@ export const LoginForm = () => {
       
       <div className="space-y-2">
         <Input
-          type="text"
-          placeholder="Nom d'utilisateur"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
       </div>
       
