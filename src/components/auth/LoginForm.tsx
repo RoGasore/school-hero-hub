@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,10 +18,8 @@ export const LoginForm = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
 
-  // Vérifier si l'utilisateur est déjà connecté
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -67,6 +65,15 @@ export const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Erreur de connexion",
+        description: "Veuillez remplir tous les champs",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -108,12 +115,18 @@ export const LoginForm = () => {
       }
     } catch (error: any) {
       console.error("Login process error:", error);
+      let errorMessage = "Email ou mot de passe incorrect";
+      
+      if (error.message === "Type d'utilisateur incorrect") {
+        errorMessage = "Veuillez sélectionner le bon type d'utilisateur";
+      } else if (error.message === "Invalid login credentials") {
+        errorMessage = "Email ou mot de passe incorrect";
+      }
+      
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
-        description: error.message === "Type d'utilisateur incorrect" 
-          ? "Veuillez sélectionner le bon type d'utilisateur"
-          : "Email ou mot de passe incorrect",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -145,6 +158,7 @@ export const LoginForm = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={isLoading}
+          required
         />
       </div>
       
@@ -155,6 +169,7 @@ export const LoginForm = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={isLoading}
+          required
         />
       </div>
       
