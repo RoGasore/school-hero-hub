@@ -9,6 +9,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import ClassDetails from "./pages/ClassDetails";
+import Library from "./pages/Library";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/teacher" element={<TeacherDashboard />} />
           <Route path="/student" element={<StudentDashboard />} />
           <Route path="/class/:classId" element={<ClassDetails />} />
+          <Route path="/library" element={<Library />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
