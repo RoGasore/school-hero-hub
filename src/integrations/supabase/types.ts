@@ -57,6 +57,81 @@ export type Database = {
           },
         ]
       }
+      book_loans: {
+        Row: {
+          book_id: string
+          created_at: string | null
+          due_date: string
+          id: string
+          returned_at: string | null
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          created_at?: string | null
+          due_date: string
+          id?: string
+          returned_at?: string | null
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          created_at?: string | null
+          due_date?: string
+          id?: string
+          returned_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_loans_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "book_loans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      books: {
+        Row: {
+          author: string
+          available_copies: number
+          category: string
+          cover_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          author: string
+          available_copies?: number
+          category: string
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          author?: string
+          available_copies?: number
+          category?: string
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       classes: {
         Row: {
           created_at: string | null
