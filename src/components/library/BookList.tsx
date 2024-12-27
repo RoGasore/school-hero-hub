@@ -10,7 +10,7 @@ export const BookList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
-  const { data: books, isLoading } = useQuery({
+  const { data: books, isLoading, refetch } = useQuery({
     queryKey: ["books"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,6 +25,17 @@ export const BookList = () => {
   const handleBorrow = async (bookId: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+
+    // Get the current book to check available copies
+    const { data: book } = await supabase
+      .from("books")
+      .select("available_copies")
+      .eq("id", bookId)
+      .single();
+
+    if (!book || book.available_copies < 1) {
+      throw new Error("No copies available");
+    }
 
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 14); // 2 semaines de prêt
@@ -42,10 +53,13 @@ export const BookList = () => {
     // Mettre à jour le nombre de copies disponibles
     const { error: updateError } = await supabase
       .from("books")
-      .update({ available_copies: supabase.sql`available_copies - 1` })
+      .update({ available_copies: book.available_copies - 1 })
       .eq("id", bookId);
 
     if (updateError) throw updateError;
+
+    // Rafraîchir la liste des livres
+    refetch();
   };
 
   const filteredBooks = books?.filter(book => {
