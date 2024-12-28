@@ -175,10 +175,14 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          date_evaluated: string | null
           evaluation_type_id: string | null
           grade: number
           id: string
+          last_modified_at: string | null
+          last_modified_reason: string | null
           period_id: string | null
+          status: string | null
           student_id: string | null
           teacher_class_id: string | null
           weight: number | null
@@ -186,10 +190,14 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          date_evaluated?: string | null
           evaluation_type_id?: string | null
           grade: number
           id?: string
+          last_modified_at?: string | null
+          last_modified_reason?: string | null
           period_id?: string | null
+          status?: string | null
           student_id?: string | null
           teacher_class_id?: string | null
           weight?: number | null
@@ -197,10 +205,14 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          date_evaluated?: string | null
           evaluation_type_id?: string | null
           grade?: number
           id?: string
+          last_modified_at?: string | null
+          last_modified_reason?: string | null
           period_id?: string | null
+          status?: string | null
           student_id?: string | null
           teacher_class_id?: string | null
           weight?: number | null

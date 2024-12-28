@@ -1,63 +1,23 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { EvaluationParamsForm } from "./grades/EvaluationParamsForm";
+import { GradesTable } from "./grades/GradesTable";
+import { SubmissionDialog } from "./grades/SubmissionDialog";
+import type { EvaluationParams, GradeEntry, GradeSubmissionData } from "@/types/grades";
 
 export const GradeSubmission = () => {
   const { toast } = useToast();
-  const [selectedClass, setSelectedClass] = useState<string>("");
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("");
-  const [selectedType, setSelectedType] = useState<string>("");
-  const [weight, setWeight] = useState<string>("10");
-  const [grades, setGrades] = useState<Record<string, string>>({});
-
-  const { data: periods } = useQuery({
-    queryKey: ["periods"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("periods")
-        .select("*")
-        .order("start_date", { ascending: true });
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: evaluationTypes } = useQuery({
-    queryKey: ["evaluation-types"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("evaluation_types")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
-      return data;
-    },
-  });
+  const [step, setStep] = useState<"params" | "grades">("params");
+  const [params, setParams] = useState<EvaluationParams | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [submissionData, setSubmissionData] = useState<GradeSubmissionData | null>(null);
 
   const { data: students } = useQuery({
-    queryKey: ["class-students", selectedClass],
+    queryKey: ["class-students", params?.classId],
     queryFn: async () => {
-      if (!selectedClass) return null;
+      if (!params?.classId) return null;
 
       const { data, error } = await supabase
         .from("student_classes")
@@ -68,40 +28,46 @@ export const GradeSubmission = () => {
             last_name
           )
         `)
-        .eq("class_id", selectedClass);
+        .eq("class_id", params.classId);
 
       if (error) throw error;
-      return data;
+      return data?.map(item => item.student) || [];
     },
-    enabled: !!selectedClass,
+    enabled: !!params?.classId,
   });
 
-  const handleGradeChange = (studentId: string, value: string) => {
-    const numValue = parseFloat(value);
-    if (isNaN(numValue) || numValue < 0 || numValue > 20) return;
-    setGrades((prev) => ({ ...prev, [studentId]: value }));
+  const handleParamsSubmit = (evaluationParams: EvaluationParams) => {
+    setParams(evaluationParams);
+    setStep("grades");
   };
 
-  const handleSubmit = async () => {
-    if (!selectedClass || !selectedPeriod || !selectedType) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs requis",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleGradesSubmit = async (grades: GradeEntry[]) => {
+    if (!params) return;
+
+    const data: GradeSubmissionData = {
+      params,
+      grades,
+    };
+
+    setSubmissionData(data);
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmSubmission = async () => {
+    if (!submissionData || !params) return;
 
     try {
-      const gradesData = Object.entries(grades).map(([studentId, grade]) => ({
-        student_id: studentId,
-        grade: parseFloat(grade),
-        period_id: selectedPeriod,
-        evaluation_type_id: selectedType,
-        weight: parseInt(weight),
-      }));
-
-      const { error } = await supabase.from("grades").insert(gradesData);
+      const { error } = await supabase.from("grades").insert(
+        submissionData.grades.map(grade => ({
+          student_id: grade.studentId,
+          grade: parseFloat(grade.grade),
+          status: grade.status,
+          weight: params.weight,
+          period_id: params.periodId,
+          evaluation_type_id: params.evaluationType,
+          date_evaluated: params.date.toISOString(),
+        }))
+      );
 
       if (error) throw error;
 
@@ -111,7 +77,10 @@ export const GradeSubmission = () => {
       });
 
       // Reset form
-      setGrades({});
+      setStep("params");
+      setParams(null);
+      setShowConfirmDialog(false);
+      setSubmissionData(null);
     } catch (error) {
       console.error("Error submitting grades:", error);
       toast({
@@ -124,94 +93,26 @@ export const GradeSubmission = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Période</label>
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une période" />
-            </SelectTrigger>
-            <SelectContent>
-              {periods?.map((period) => (
-                <SelectItem key={period.id} value={period.id}>
-                  {period.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Type d'évaluation</label>
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un type" />
-            </SelectTrigger>
-            <SelectContent>
-              {evaluationTypes?.map((type) => (
-                <SelectItem key={type.id} value={type.id}>
-                  {type.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Pondération</label>
-          <Select value={weight} onValueChange={setWeight}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une pondération" />
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 10, 15, 20].map((w) => (
-                <SelectItem key={w} value={w.toString()}>
-                  {w}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {students && students.length > 0 && (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom de l'élève</TableHead>
-                <TableHead>Note (/20)</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {students.map((item) => (
-                <TableRow key={item.student.id}>
-                  <TableCell>
-                    {item.student.first_name} {item.student.last_name}
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="20"
-                      step="0.5"
-                      value={grades[item.student.id] || ""}
-                      onChange={(e) =>
-                        handleGradeChange(item.student.id, e.target.value)
-                      }
-                      className="w-24"
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+      {step === "params" && (
+        <EvaluationParamsForm onParamsSubmit={handleParamsSubmit} />
       )}
 
-      <Button onClick={handleSubmit} className="w-full">
-        Soumettre les notes
-      </Button>
+      {step === "grades" && students && params && (
+        <GradesTable
+          students={students}
+          maxGrade={params.weight}
+          onSubmit={handleGradesSubmit}
+        />
+      )}
+
+      {showConfirmDialog && submissionData && (
+        <SubmissionDialog
+          isOpen={showConfirmDialog}
+          onClose={() => setShowConfirmDialog(false)}
+          onConfirm={handleConfirmSubmission}
+          data={submissionData}
+        />
+      )}
     </div>
   );
 };
