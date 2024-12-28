@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -10,123 +9,43 @@ import {
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 export const LoginForm = () => {
   const [userType, setUserType] = useState("student");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log("Session check:", session);
-        
-        if (session) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-
-          console.log("Profile check:", profile, profileError);
-
-          if (profile) {
-            redirectBasedOnRole(profile.role);
-          }
-        }
-      } catch (error) {
-        console.error("Session check error:", error);
-      }
-    };
-    checkSession();
-  }, []);
-
-  const redirectBasedOnRole = (role: string) => {
-    console.log("Redirecting based on role:", role);
-    switch (role) {
-      case "admin":
-        navigate("/admin");
-        break;
-      case "teacher":
-        navigate("/teacher");
-        break;
-      case "student":
-        navigate("/student");
-        break;
-      default:
-        navigate("/");
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast({
-        variant: "destructive",
-        title: "Erreur de connexion",
-        description: "Veuillez remplir tous les champs",
-      });
-      return;
-    }
-
     setIsLoading(true);
-    
+
     try {
-      console.log("Attempting login with:", email);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      // Temporairement, on redirige directement selon le type d'utilisateur
+      switch (userType) {
+        case "admin":
+          navigate("/admin");
+          break;
+        case "teacher":
+          navigate("/teacher");
+          break;
+        case "student":
+          navigate("/student");
+          break;
+        default:
+          navigate("/");
+      }
+
+      toast({
+        title: "Connexion réussie",
+        description: "Bienvenue sur votre tableau de bord",
       });
-
-      if (error) {
-        console.error("Login error:", error);
-        throw error;
-      }
-
-      if (data.session) {
-        console.log("Login successful, fetching profile");
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error("Profile fetch error:", profileError);
-          throw profileError;
-        }
-
-        console.log("Profile fetched:", profile);
-
-        if (profile && profile.role === userType) {
-          toast({
-            title: "Connexion réussie",
-            description: "Bienvenue sur votre tableau de bord",
-          });
-          redirectBasedOnRole(profile.role);
-        } else {
-          throw new Error("Type d'utilisateur incorrect");
-        }
-      }
-    } catch (error: any) {
-      console.error("Login process error:", error);
-      let errorMessage = "Email ou mot de passe incorrect";
-      
-      if (error.message === "Type d'utilisateur incorrect") {
-        errorMessage = "Veuillez sélectionner le bon type d'utilisateur";
-      } else if (error.message === "Invalid login credentials") {
-        errorMessage = "Email ou mot de passe incorrect";
-      }
-      
+    } catch (error) {
+      console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
-        description: errorMessage,
+        description: "Une erreur est survenue",
       });
     } finally {
       setIsLoading(false);
@@ -149,28 +68,6 @@ export const LoginForm = () => {
             <SelectItem value="admin">Administrateur</SelectItem>
           </SelectContent>
         </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={isLoading}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Input
-          type="password"
-          placeholder="Mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={isLoading}
-          required
-        />
       </div>
       
       <Button type="submit" className="w-full" disabled={isLoading}>
