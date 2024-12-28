@@ -35,6 +35,7 @@ export const EvaluationParamsForm = ({ onParamsSubmit }: Props) => {
   const { data: periods } = useQuery({
     queryKey: ["periods"],
     queryFn: async () => {
+      console.log("Fetching periods...");
       const { data, error } = await supabase
         .from("periods")
         .select("*")
@@ -47,6 +48,7 @@ export const EvaluationParamsForm = ({ onParamsSubmit }: Props) => {
   const { data: classes } = useQuery({
     queryKey: ["teacher-classes"],
     queryFn: async () => {
+      console.log("Fetching teacher classes...");
       const { data, error } = await supabase
         .from("teacher_classes")
         .select(`
@@ -56,8 +58,7 @@ export const EvaluationParamsForm = ({ onParamsSubmit }: Props) => {
             id,
             name
           )
-        `)
-        .eq("teacher_id", "user-id"); // TODO: Replace with actual user ID
+        `);
       if (error) throw error;
       return data;
     },
@@ -66,6 +67,7 @@ export const EvaluationParamsForm = ({ onParamsSubmit }: Props) => {
   const { data: evaluationTypes } = useQuery({
     queryKey: ["evaluation-types"],
     queryFn: async () => {
+      console.log("Fetching evaluation types...");
       const { data, error } = await supabase
         .from("evaluation_types")
         .select("*");
@@ -75,6 +77,10 @@ export const EvaluationParamsForm = ({ onParamsSubmit }: Props) => {
   });
 
   const handleSubmit = () => {
+    if (!periodId || !classId || !evaluationType) {
+      return;
+    }
+    
     onParamsSubmit({
       periodId,
       classId,
@@ -150,7 +156,7 @@ export const EvaluationParamsForm = ({ onParamsSubmit }: Props) => {
             <SelectContent>
               {[5, 10, 15, 20, 25, 30].map((w) => (
                 <SelectItem key={w} value={w.toString()}>
-                  {w}
+                  {w} points
                 </SelectItem>
               ))}
             </SelectContent>

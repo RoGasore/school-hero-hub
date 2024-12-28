@@ -19,6 +19,7 @@ export const GradeSubmission = () => {
     queryFn: async () => {
       if (!params?.classId) return null;
 
+      console.log("Fetching students for class:", params.classId);
       const { data, error } = await supabase
         .from("student_classes")
         .select(`
@@ -37,6 +38,7 @@ export const GradeSubmission = () => {
   });
 
   const handleParamsSubmit = (evaluationParams: EvaluationParams) => {
+    console.log("Evaluation params submitted:", evaluationParams);
     setParams(evaluationParams);
     setStep("grades");
   };
@@ -44,6 +46,7 @@ export const GradeSubmission = () => {
   const handleGradesSubmit = async (grades: GradeEntry[]) => {
     if (!params) return;
 
+    console.log("Grades submitted:", grades);
     const data: GradeSubmissionData = {
       params,
       grades,
@@ -57,6 +60,7 @@ export const GradeSubmission = () => {
     if (!submissionData || !params) return;
 
     try {
+      console.log("Confirming grade submission...");
       const { error } = await supabase.from("grades").insert(
         submissionData.grades.map(grade => ({
           student_id: grade.studentId,
