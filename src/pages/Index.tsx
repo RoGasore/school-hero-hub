@@ -9,29 +9,24 @@ import { RegistrationSection } from "@/components/home/RegistrationSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { ContactSection } from "@/components/home/ContactSection";
 import { Footer } from "@/components/layout/Footer";
-import { BrowserRouter } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";
 
 const Index = () => {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <main>
-          <HeroSection />
-          <AboutSection />
-          <ProgramsSection />
-          <DigitalFeaturesSection />
-          <TestimonialsSection />
-          <NewsEventsSection />
-          <RegistrationSection />
-          <FaqSection />
-          <ContactSection />
-        </main>
-        <Footer />
-        <Toaster />
-      </div>
-    </BrowserRouter>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <main>
+        <HeroSection />
+        <AboutSection />
+        <ProgramsSection />
+        <DigitalFeaturesSection />
+        <TestimonialsSection />
+        <NewsEventsSection />
+        <RegistrationSection />
+        <FaqSection />
+        <ContactSection />
+      </main>
+      <Footer />
+    </div>
   );
 };
 
