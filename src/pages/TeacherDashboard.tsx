@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,94 +11,52 @@ import { useToast } from "@/components/ui/use-toast";
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate('/login');
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (!profile || profile.role !== 'teacher') {
-        toast({
-          variant: "destructive",
-          title: "Accès refusé",
-          description: "Vous devez être connecté en tant qu'enseignant pour accéder à cette page",
-        });
-        navigate('/login');
-        return;
-      }
-
-      setUserId(session.user.id);
-    };
-
-    checkSession();
-
-    // Écouter les changements d'authentification
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate('/login');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
+  // Temporarily set a mock user ID for development
+  const [userId] = useState("temporary-teacher-id");
 
   const { data: teacherData, isLoading } = useQuery({
     queryKey: ['teacherData', userId],
     queryFn: async () => {
       if (!userId) return null;
       
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('first_name, last_name')
-        .eq('id', userId)
-        .single();
-
-      const { data: classesData, error } = await supabase
-        .from('teacher_classes')
-        .select(`
-          id,
-          subject,
-          class_id,
-          classes (
-            id,
-            name,
-            student_classes (
-              student_id,
-              profiles (
-                first_name,
-                last_name
-              )
-            )
-          )
-        `)
-        .eq('teacher_id', userId);
-
-      if (error) {
-        console.error('Error fetching teacher classes:', error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger vos classes",
-          variant: "destructive",
-        });
-        return null;
-      }
-
+      // Mock data for development
       return {
-        profile: profileData,
-        classes: classesData
+        profile: {
+          first_name: "Enseignant",
+          last_name: "Test"
+        },
+        classes: [
+          {
+            id: "1",
+            subject: "Mathématiques",
+            class_id: "class-1",
+            classes: {
+              name: "6ème A",
+              student_classes: Array(20).fill(null).map((_, i) => ({
+                student_id: `student-${i}`,
+                profiles: {
+                  first_name: `Élève`,
+                  last_name: `${i + 1}`
+                }
+              }))
+            }
+          },
+          {
+            id: "2",
+            subject: "Physique",
+            class_id: "class-2",
+            classes: {
+              name: "5ème B",
+              student_classes: Array(18).fill(null).map((_, i) => ({
+                student_id: `student-${i}`,
+                profiles: {
+                  first_name: `Élève`,
+                  last_name: `${i + 1}`
+                }
+              }))
+            }
+          }
+        ]
       };
     },
     enabled: !!userId,
